@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,22 +24,19 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-        ];
-    }
+        $accountNumber = null;
+        do {
+            $accountNumber = mt_rand(1000000000, 9999999999);
+        } while (substr($accountNumber, 0, 1) === '0' || User::where('account_number', $accountNumber)->exists());
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+    return [
+        'name' => $this->faker->name,
+        'email' => $this->faker->unique()->safeEmail,
+        'username' => $this->faker->unique()->userName,
+        'password' => static::$password ??= Hash::make('password'),
+        'account_number' => $accountNumber,
+        'remember_token' => Str::random(10),
+        'balance' => round($this->faker->randomFloat(2, 0, 1000), 2),
+    ];
     }
 }
